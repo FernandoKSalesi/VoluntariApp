@@ -1,6 +1,6 @@
-// src/presentation/components/Hero.tsx
 import styled from "styled-components";
 import { Container } from "../styles/container";
+import { useNavigate } from "react-router-dom";
 
 const Section = styled.section`
   height: 100vh;
@@ -9,7 +9,6 @@ const Section = styled.section`
   padding: 0 60px;
   color: white;
 
-  // gradiente que controla o escurecimento da imagem no plano de fundo
   background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
     url("/images/lp-background-2.jpg") center/cover no-repeat;
 `;
@@ -39,6 +38,7 @@ const PrimaryButton = styled.button`
   border-radius: 6px;
   font-size: 17px;
   font-weight: 500;
+  cursor: pointer;
 `;
 
 const SecondaryButton = styled.button`
@@ -47,6 +47,7 @@ const SecondaryButton = styled.button`
   padding: 16px 32px;
   border-radius: 8px;
   font-size: 17px;
+  cursor: pointer;
 `;
 
 const Icon = styled.div`
@@ -55,21 +56,30 @@ const Icon = styled.div`
 `;
 
 export function Hero() {
+  const navigate = useNavigate();
+
   return (
     <Section>
       <Container>
         <Content>
-        <Icon>❤️</Icon>
-        <Title> Transforme vidas através do voluntariado</Title>
-        <Subtitle>
-          Conecte-se com causas que importam e faça a diferença na sua comunidade.
-        </Subtitle>
+          <Icon>❤️</Icon>
 
-        <Buttons>
-          <PrimaryButton>Explorar Eventos ➜ </PrimaryButton>
-          <SecondaryButton>Cadastrar-se</SecondaryButton>
-        </Buttons>
-      </Content>
+          <Title>Transforme vidas através do voluntariado</Title>
+
+          <Subtitle>
+            Conecte-se com causas que importam e faça a diferença na sua comunidade.
+          </Subtitle>
+
+          <Buttons>
+            <PrimaryButton onClick={() => navigate("/events")}>
+              Explorar Eventos ➜
+            </PrimaryButton>
+
+            <SecondaryButton onClick={() => navigate("/register")}>
+              Cadastrar-se
+            </SecondaryButton>
+          </Buttons>
+        </Content>
       </Container>
     </Section>
   );

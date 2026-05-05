@@ -1,5 +1,6 @@
 import styled from "styled-components";
-import { Container } from "../styles/container"; // talvez não precise desse container, é só pra landing page centralizar
+import { Container } from "../styles/container";
+import { useNavigate } from "react-router-dom";
 
 const HeaderWrapper = styled.header`
   width: 100%;
@@ -17,6 +18,7 @@ const Content = styled.div`
 const Logo = styled.div`
   font-weight: bold;
   font-size: 30.8px;
+  cursor: pointer;
 `;
 
 const Nav = styled.nav`
@@ -31,20 +33,30 @@ const Button = styled.button`
   font-weight: 400;
   padding: 8px 16px;
   border-radius: 6px;
+  cursor: pointer;
 `;
 
 export function Header() {
+  const navigate = useNavigate();
+
   return (
     <HeaderWrapper>
       <Container>
         <Content>
-          <Logo>❤️ VoluntariApp</Logo>
+          <Logo onClick={() => navigate("/")}>
+            ❤️ VoluntariApp
+          </Logo>
 
           <Nav>
             <span>📅 Eventos</span>
             <span>Organizar</span>
-            <span>👤 Perfil</span>
-            <Button>Entrar</Button>
+            <span onClick={() => navigate("/profile")} style={{ cursor: "pointer" }}>
+               👤 Perfil
+            </span>
+
+            <Button onClick={() => navigate("/login")}>
+              Entrar
+            </Button>
           </Nav>
         </Content>
       </Container>
