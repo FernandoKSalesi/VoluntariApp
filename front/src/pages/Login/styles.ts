@@ -68,6 +68,17 @@ export const FooterText = styled.div`
   }
 `;
 
+export const ErrorMessage = styled.span`
+  color: #d32f2f;
+  background-color: #fdecea;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 10px;
+  display: block;
+`;
+
 export const Right = styled.div`
   flex: 1;
 

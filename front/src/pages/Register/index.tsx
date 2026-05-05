@@ -9,7 +9,8 @@ import {
   Form,
   Row,
   FooterText,
-  FormWrapper
+  FormWrapper,
+  ErrorMessage
 } from "./styles";
 
 import { api } from "../../services/api";
@@ -20,6 +21,7 @@ import { Button } from "../../components/Button";
 export default function Register() {
   const navigate = useNavigate();
 
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -35,12 +37,14 @@ export default function Register() {
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
 
     try {
       await api.post("/usuarios", form);
       navigate("/login");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.response?.data?.message || "Erro ao realizar cadastro. Verifique os dados e tente novamente.");
     }
   }
 
@@ -55,6 +59,7 @@ export default function Register() {
 
           <FormWrapper>
             <Form onSubmit={handleRegister}>
+              {error && <ErrorMessage>{error}</ErrorMessage>}
               <Input
                 label="Nome completo"
                 name="name"

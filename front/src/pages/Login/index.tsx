@@ -10,6 +10,7 @@ import {
   Row,
   FooterText,
   FormWrapper,
+  ErrorMessage,
 } from "./styles";
 
 import { api } from "../../services/api";
@@ -20,10 +21,12 @@ import { Button } from "../../components/Button";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
 
     try {
       const response = await api.post("/auth/login", {
@@ -33,8 +36,9 @@ export default function Login() {
 
       localStorage.setItem("token", response.data.token);
       navigate("/profile");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.response?.data?.message || "Erro ao fazer login. Tente novamente.");
     }
   }
 
@@ -49,6 +53,7 @@ export default function Login() {
 
           <FormWrapper>
             <Form onSubmit={handleLogin}>
+              {error && <ErrorMessage>{error}</ErrorMessage>}
               <Input
                 label="Email"
                 type="email"
