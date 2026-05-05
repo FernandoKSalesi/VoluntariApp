@@ -32,7 +32,7 @@ export default function Login() {
       });
 
       localStorage.setItem("token", response.data.token);
-      navigate("/");
+      navigate("/profile");
     } catch (err) {
       console.error(err);
     }

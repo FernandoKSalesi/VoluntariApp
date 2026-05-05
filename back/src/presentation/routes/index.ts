@@ -10,6 +10,6 @@ routes.post('/auth/login', (req, res) => usuarioController.login(req, res));
 
 // Rotas protegidas
 routes.put('/usuarios', authMiddleware, (req, res) => usuarioController.update(req, res));
-routes.get('/usuarios/me', (req, res) => usuarioController.showMe(req, res));
+routes.get('/usuarios/me', authMiddleware, (req, res) => usuarioController.showMe(req, res));
 
 export default routes;

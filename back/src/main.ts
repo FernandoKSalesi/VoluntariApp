@@ -11,7 +11,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
-console.log(routes); app.use(routes);
+app.use(routes);
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);

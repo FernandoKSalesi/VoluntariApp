@@ -14,11 +14,10 @@ model Usuario {
   cpf                  String?       @unique
   username             String        @unique
   senha_hash           String
-
   eventosOrganizados   Evento[]      @relation("EventosOrganizados")
   inscricoes           Inscricao[]
-  notificacoes         Notificacao[] @relation("NotificacaoDestinatario")
   notificacoesEnviadas Notificacao[] @relation("NotificacaoRemetente")
+  notificacoes         Notificacao[] @relation("NotificacaoDestinatario")
 
   @@map("usuarios")
 }
@@ -34,12 +33,12 @@ model Evento {
   imagem_url     String?
   vagas_totais   Int
   criado_em      DateTime          @default(now())
-
   organizador    Usuario           @relation("EventosOrganizados", fields: [organizador_id], references: [id])
+  categorias     EventoCategoria[]
   inscricoes     Inscricao[]
   notificacoes   Notificacao[]
-  categorias     EventoCategoria[]
 
+  @@index([organizador_id], map: "eventos_organizador_id_fkey")
   @@map("eventos")
 }
 
@@ -50,33 +49,30 @@ model Inscricao {
   status       StatusInscricao @default(PENDENTE)
   inscrito_em  DateTime        @default(now())
   cancelado_em DateTime?
-
-  usuario      Usuario         @relation(fields: [usuario_id], references: [id])
   evento       Evento          @relation(fields: [evento_id], references: [id])
+  usuario      Usuario         @relation(fields: [usuario_id], references: [id])
 
+  @@index([evento_id], map: "inscricoes_evento_id_fkey")
+  @@index([usuario_id], map: "inscricoes_usuario_id_fkey")
   @@map("inscricoes")
 }
 
-enum StatusInscricao {
-  PENDENTE
-  CONFIRMADA
-  CANCELADA
-}
-
 model Notificacao {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   evento_id    Int?
   usuario_id   Int
   remetente_id Int?
   titulo       String
-  mensagem     String    @db.Text
-  lida         Boolean   @default(false)
-  enviado_em   DateTime  @default(now())
+  mensagem     String   @db.Text
+  lida         Boolean  @default(false)
+  enviado_em   DateTime @default(now())
+  evento       Evento?  @relation(fields: [evento_id], references: [id])
+  remetente    Usuario? @relation("NotificacaoRemetente", fields: [remetente_id], references: [id])
+  destinatario Usuario  @relation("NotificacaoDestinatario", fields: [usuario_id], references: [id])
 
-  evento       Evento?   @relation(fields: [evento_id], references: [id])
-  destinatario Usuario   @relation("NotificacaoDestinatario", fields: [usuario_id], references: [id])
-  remetente    Usuario?  @relation("NotificacaoRemetente", fields: [remetente_id], references: [id])
-
+  @@index([evento_id], map: "notificacoes_evento_id_fkey")
+  @@index([remetente_id], map: "notificacoes_remetente_id_fkey")
+  @@index([usuario_id], map: "notificacoes_usuario_id_fkey")
   @@map("notificacoes")
 }
 
@@ -84,7 +80,6 @@ model Categoria {
   id        Int               @id @default(autoincrement())
   nome      String
   descricao String?           @db.Text
-  
   eventos   EventoCategoria[]
 
   @@map("categorias")
@@ -93,10 +88,16 @@ model Categoria {
 model EventoCategoria {
   evento_id    Int
   categoria_id Int
-
-  evento       Evento    @relation(fields: [evento_id], references: [id])
   categoria    Categoria @relation(fields: [categoria_id], references: [id])
+  evento       Evento    @relation(fields: [evento_id], references: [id])
 
   @@id([evento_id, categoria_id])
+  @@index([categoria_id], map: "eventos_categorias_categoria_id_fkey")
   @@map("eventos_categorias")
+}
+
+enum StatusInscricao {
+  PENDENTE
+  CONFIRMADA
+  CANCELADA
 }
