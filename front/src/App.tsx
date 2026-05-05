@@ -1,11 +1,11 @@
-import { GlobalStyle } from "./presentation/styles/global";
-import { LandingPage } from "./presentation/pages/LandingPage";
+import { GlobalStyle } from "./styles/global";
+import AppRoutes from "./routes";
 
 export default function App() {
   return (
     <>
       <GlobalStyle />
-      <LandingPage />
+      <AppRoutes />
     </>
   );
 }
