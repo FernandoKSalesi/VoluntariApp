@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Usuario {
+  id                   Int           @id @default(autoincrement())
+  nome                 String
+  email                String        @unique
+  telefone             String?
+  cpf                  String?       @unique
+  username             String        @unique
+  senha_hash           String
+
+  eventosOrganizados   Evento[]      @relation("EventosOrganizados")
+  inscricoes           Inscricao[]
+  notificacoes         Notificacao[] @relation("NotificacaoDestinatario")
+  notificacoesEnviadas Notificacao[] @relation("NotificacaoRemetente")
+
+  @@map("usuarios")
+}
+
+model Evento {
+  id             Int               @id @default(autoincrement())
+  organizador_id Int
+  nome           String
+  descricao      String?           @db.Text
+  horario_inicio DateTime
+  horario_fim    DateTime
+  localizacao    String?
+  imagem_url     String?
+  vagas_totais   Int
+  criado_em      DateTime          @default(now())
+
+  organizador    Usuario           @relation("EventosOrganizados", fields: [organizador_id], references: [id])
+  inscricoes     Inscricao[]
+  notificacoes   Notificacao[]
+  categorias     EventoCategoria[]
+
+  @@map("eventos")
+}
+
+model Inscricao {
+  id           Int             @id @default(autoincrement())
+  usuario_id   Int
+  evento_id    Int
+  status       StatusInscricao @default(PENDENTE)
+  inscrito_em  DateTime        @default(now())
+  cancelado_em DateTime?
+
+  usuario      Usuario         @relation(fields: [usuario_id], references: [id])
+  evento       Evento          @relation(fields: [evento_id], references: [id])
+
+  @@map("inscricoes")
+}
+
+enum StatusInscricao {
+  PENDENTE
+  CONFIRMADA
+  CANCELADA
+}
+
+model Notificacao {
+  id           Int       @id @default(autoincrement())
+  evento_id    Int?
+  usuario_id   Int
+  remetente_id Int?
+  titulo       String
+  mensagem     String    @db.Text
+  lida         Boolean   @default(false)
+  enviado_em   DateTime  @default(now())
+
+  evento       Evento?   @relation(fields: [evento_id], references: [id])
+  destinatario Usuario   @relation("NotificacaoDestinatario", fields: [usuario_id], references: [id])
+  remetente    Usuario?  @relation("NotificacaoRemetente", fields: [remetente_id], references: [id])
+
+  @@map("notificacoes")
+}
+
+model Categoria {
+  id        Int               @id @default(autoincrement())
+  nome      String
+  descricao String?           @db.Text
+  
+  eventos   EventoCategoria[]
+
+  @@map("categorias")
+}
+
+model EventoCategoria {
+  evento_id    Int
+  categoria_id Int
+
+  evento       Evento    @relation(fields: [evento_id], references: [id])
+  categoria    Categoria @relation(fields: [categoria_id], references: [id])
+
+  @@id([evento_id, categoria_id])
+  @@map("eventos_categorias")
+}
