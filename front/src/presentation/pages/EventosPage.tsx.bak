@@ -1,0 +1,206 @@
+import { useState } from "react";
+import { Link } from "react-router";
+import { motion } from "motion/react";
+import { Search, MapPin, Calendar, Users, SlidersHorizontal } from "lucide-react";
+
+const mockEvents = [
+  {
+    id: 1,
+    title: "Limpeza de Parque Comunitário",
+    image: "https://images.unsplash.com/photo-1758599668429-121d54188b9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600",
+    date: "20 Abr 2026",
+    location: "Parque Ibirapuera, SP",
+    vagas: 25,
+    categoria: "Meio Ambiente",
+    descricao: "Ajude a manter nosso parque limpo e agradável para todos."
+  },
+  {
+    id: 2,
+    title: "Distribuição de Alimentos",
+    image: "https://images.unsplash.com/photo-1758599669406-d5179ccefcb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600",
+    date: "22 Abr 2026",
+    location: "Centro, São Paulo",
+    vagas: 30,
+    categoria: "Alimentação",
+    descricao: "Distribuição de marmitas para pessoas em situação de vulnerabilidade."
+  },
+  {
+    id: 3,
+    title: "Plantio de Árvores",
+    image: "https://images.unsplash.com/photo-1758599668547-2b1192c10abb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600",
+    date: "25 Abr 2026",
+    location: "Zona Leste, SP",
+    vagas: 40,
+    categoria: "Meio Ambiente",
+    descricao: "Ação de reflorestamento urbano com mudas nativas."
+  },
+  {
+    id: 4,
+    title: "Aula de Reforço Escolar",
+    image: "https://images.unsplash.com/photo-1758599667729-a6f0f8bd213b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600",
+    date: "27 Abr 2026",
+    location: "Zona Sul, SP",
+    vagas: 15,
+    categoria: "Educação",
+    descricao: "Voluntários para ensinar matemática e português."
+  },
+  {
+    id: 5,
+    title: "Campanha de Doação de Sangue",
+    image: "https://images.unsplash.com/photo-1758599669199-a858720a9689?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600",
+    date: "28 Abr 2026",
+    location: "Hospital das Clínicas, SP",
+    vagas: 50,
+    categoria: "Saúde",
+    descricao: "Ajude a salvar vidas doando sangue."
+  },
+  {
+    id: 6,
+    title: "Reforma de Casa Comunitária",
+    image: "https://images.unsplash.com/photo-1758599668294-8d13c0942601?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600",
+    date: "30 Abr 2026",
+    location: "Zona Norte, SP",
+    vagas: 20,
+    categoria: "Construção",
+    descricao: "Ajude na pintura e pequenos reparos."
+  }
+];
+
+const categorias = ["Todas", "Meio Ambiente", "Alimentação", "Educação", "Saúde", "Construção"];
+
+export function EventosPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategoria, setSelectedCategoria] = useState("Todas");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const filteredEvents = mockEvents.filter((event) => {
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         event.descricao.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategoria = selectedCategoria === "Todas" || event.categoria === selectedCategoria;
+    return matchesSearch && matchesCategoria;
+  });
+
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="bg-secondary py-16">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ fontSize: '3.5rem', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '1rem' }}
+          >
+            Eventos de Voluntariado
+          </motion.h1>
+          <p className="text-muted-foreground" style={{ fontSize: '1.125rem' }}>
+            Encontre oportunidades para fazer a diferença
+          </p>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 py-12">
+        <div className="mb-8">
+          <div className="flex gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar eventos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-secondary rounded-lg outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-6 py-3 bg-secondary rounded-lg hover:bg-muted transition-colors flex items-center gap-2"
+            >
+              <SlidersHorizontal className="w-5 h-5" />
+              Filtros
+            </button>
+          </div>
+
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mb-6 p-6 bg-secondary rounded-lg"
+            >
+              <h3 className="mb-4" style={{ fontWeight: 600 }}>Categoria</h3>
+              <div className="flex flex-wrap gap-2">
+                {categorias.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategoria(cat)}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      selectedCategoria === cat
+                        ? 'bg-accent text-accent-foreground'
+                        : 'bg-white hover:bg-muted'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredEvents.map((event, index) => (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              whileHover={{ y: -8 }}
+            >
+              <Link to={`/eventos/${event.id}`} className="group block">
+                <div className="relative overflow-hidden rounded-xl mb-4 aspect-[4/3] shadow-lg group-hover:shadow-xl transition-shadow">
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-4 left-4 px-3 py-1 bg-white/95 rounded-full" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                    {event.categoria}
+                  </div>
+                  <div className="absolute top-4 right-4 px-3 py-1 bg-accent text-accent-foreground rounded-full" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                    {event.vagas} vagas
+                  </div>
+                </div>
+                <h3 className="mb-2 group-hover:text-accent transition-colors" style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                  {event.title}
+                </h3>
+                <p className="text-muted-foreground mb-3 line-clamp-2">
+                  {event.descricao}
+                </p>
+                <div className="flex flex-col gap-2 text-muted-foreground" style={{ fontSize: '0.875rem' }}>
+                  <span className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {event.date}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    {event.location}
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+
+        {filteredEvents.length === 0 && (
+          <div className="text-center py-20">
+            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+              Nenhum evento encontrado
+            </h3>
+            <p className="text-muted-foreground">
+              Tente ajustar seus filtros ou busca
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

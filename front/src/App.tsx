@@ -1,11 +1,6 @@
-import { GlobalStyle } from "./styles/global";
-import AppRoutes from "./routes";
+﻿import { RouterProvider } from "react-router";
+import { router } from "@/core/router/routes";
 
 export default function App() {
-  return (
-    <>
-      <GlobalStyle />
-      <AppRoutes />
-    </>
-  );
+  return <RouterProvider router={router} />;
 }
