@@ -8,9 +8,10 @@ if (!databaseUrl) {
 }
 
 const connectionString = databaseUrl.includes("?") 
-  ? `${databaseUrl}&prepareCacheLength=0` 
-  : `${databaseUrl}?prepareCacheLength=0`;
+  ? `${databaseUrl}&prepareCacheLength=0&connectTimeout=20000` 
+  : `${databaseUrl}?prepareCacheLength=0&connectTimeout=20000`;
 
+// Aumentando o timeout para evitar o erro de pool timeout
 const adapter = new PrismaMariaDb(connectionString);
 
 export const prisma = new PrismaClient({ adapter });

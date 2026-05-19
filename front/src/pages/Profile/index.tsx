@@ -29,17 +29,17 @@ export default function Profile() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const response = await api.get("/usuarios/me");
-        const { nome, email, telefone, cpf, username } = response.data;
+        const response = await api.get("/users/me");
+        const { name, email, phone, cpf, username } = response.data;
         setForm({
-          name: nome || "",
+          name: name || "",
           email: email || "",
-          phone: telefone || "",
-          cpf: cpf || "",
+          phone: phone || "",
+          cpf: cpf || "" ,
           username: username || "",
         });
       } catch (err) {
-        console.error("Erro ao carregar perfil", err);
+        console.error("Error loading profile", err);
       } finally {
         setLoading(false);
       }
@@ -54,12 +54,12 @@ export default function Profile() {
 
   async function handleSave() {
     try {
-      await api.put("/usuarios", form);
+      await api.put("/users", form);
       setEditing(false);
-      alert("Perfil atualizado com sucesso!");
+      alert("Profile updated successfully!");
     } catch (err) {
-      console.error("Erro ao atualizar perfil", err);
-      alert("Erro ao atualizar perfil.");
+      console.error("Error updating profile", err);
+      alert("Error updating profile.");
     }
   }
 
@@ -68,7 +68,7 @@ export default function Profile() {
       <>
         <Header />
         <Container>
-          <p>Carregando...</p>
+          <p>Loading...</p>
         </Container>
       </>
     );
@@ -79,14 +79,14 @@ export default function Profile() {
       <Header />
 
       <Container>
-        <h1>Meu Perfil</h1>
+        <h1>My Profile</h1>
 
         <Content>
-          {/* ESQUERDA */}
+          {/* LEFT */}
           <div style={{ flex: 1 }}>
             <Card>
               <TitleRow>
-                <h2>Informações Pessoais</h2>
+                <h2>Personal Information</h2>
 
                 <span 
                   onClick={() => editing ? handleSave() : setEditing(true)} 
@@ -94,11 +94,11 @@ export default function Profile() {
                 >
                   {editing ? (
                     <>
-                      <Save size={18} /> Salvar
+                      <Save size={18} /> Save
                     </>
                   ) : (
                     <>
-                      <Edit2 size={18} /> Editar
+                      <Edit2 size={18} /> Edit
                     </>
                   )}
                 </span>
@@ -106,7 +106,7 @@ export default function Profile() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                 <Input
-                  label="Nome Completo"
+                  label="Full Name"
                   name="name"
                   value={form.name}
                   disabled={!editing}
@@ -125,7 +125,7 @@ export default function Profile() {
 
                 <Row>
                   <Input
-                    label="Telefone"
+                    label="Phone"
                     name="phone"
                     value={form.phone}
                     disabled={!editing}
@@ -146,14 +146,14 @@ export default function Profile() {
             </Card>
 
             <Card>
-              <h2>Meus Eventos</h2>
+              <h2>My Events</h2>
               <p style={{ color: "#777", marginTop: "10px" }}>
-                Você ainda não participou de eventos.
+                You haven't participated in any events yet.
               </p>
             </Card>
           </div>
 
-          {/* DIREITA */}
+          {/* RIGHT */}
           <SideCard>
             <div className="avatar">
               <User size={40} />
@@ -164,18 +164,18 @@ export default function Profile() {
 
             <div className="stats">
               <div>
-                <span>Eventos participados</span>
+                <span>Events participated</span>
                 <strong>0</strong>
               </div>
 
               <div>
-                <span>Horas voluntariadas</span>
+                <span>Volunteered hours</span>
                 <strong>0h</strong>
               </div>
 
               <div>
-                <span>Impacto gerado</span>
-                <strong>Baixo</strong>
+                <span>Impact generated</span>
+                <strong>Low</strong>
               </div>
             </div>
           </SideCard>

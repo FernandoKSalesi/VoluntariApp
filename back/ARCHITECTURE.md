@@ -19,7 +19,7 @@ Responsável por lidar com as requisições e respostas HTTP (provavelmente util
 
 ### 3.2. Camada de Serviços / Aplicação (`src/services/`)
 Contém as regras de negócio da aplicação.
-*   *Exemplos:* `EventoService.ts`, `UsuarioService.ts`, `InscricaoService.ts`.
+*   *Exemplos:* `EventService.ts`, `UserService.ts`, `InscricaoService.ts`.
 *   Aplica validações de negócio e orquestra operações entre múltiplos repositórios e entidades antes de devolver o resultado para os *Controllers*.
 
 ### 3.3. Camada de Domínio (`src/entities/`)

@@ -6,98 +6,98 @@ datasource db {
   provider = "mysql"
 }
 
-model Usuario {
+model User {
   id                   Int           @id @default(autoincrement())
-  nome                 String
+  name                 String        @map("nome")
   email                String        @unique
-  telefone             String?
+  phone                String?       @map("telefone")
   cpf                  String?       @unique
   username             String        @unique
-  senha_hash           String
-  eventosOrganizados   Evento[]      @relation("EventosOrganizados")
-  inscricoes           Inscricao[]
-  notificacoesEnviadas Notificacao[] @relation("NotificacaoRemetente")
-  notificacoes         Notificacao[] @relation("NotificacaoDestinatario")
+  passwordHash         String        @map("senha_hash")
+  organizedEvents      Event[]       @relation("OrganizedEvents")
+  subscriptions        Subscription[]
+  notificationsSent    Notification[] @relation("NotificationSender")
+  notifications        Notification[] @relation("NotificationRecipient")
 
   @@map("usuarios")
 }
 
-model Evento {
+model Event {
   id             Int               @id @default(autoincrement())
-  organizador_id Int
-  nome           String
-  descricao      String?           @db.Text
-  horario_inicio DateTime
-  horario_fim    DateTime
-  localizacao    String?
-  imagem_url     String?
-  vagas_totais   Int
-  criado_em      DateTime          @default(now())
-  organizador    Usuario           @relation("EventosOrganizados", fields: [organizador_id], references: [id])
-  categorias     EventoCategoria[]
-  inscricoes     Inscricao[]
-  notificacoes   Notificacao[]
+  organizerId    Int               @map("organizador_id")
+  name           String            @map("nome")
+  description    String?           @db.Text @map("descricao")
+  startTime      DateTime          @map("horario_inicio")
+  endTime        DateTime          @map("horario_fim")
+  location       String?           @map("localizacao")
+  imageUrl       String?           @map("imagem_url")
+  totalSpots     Int               @map("vagas_totais")
+  createdAt      DateTime          @default(now()) @map("criado_em")
+  organizer      User              @relation("OrganizedEvents", fields: [organizerId], references: [id])
+  categories     EventCategory[]
+  subscriptions  Subscription[]
+  notifications  Notification[]
 
-  @@index([organizador_id], map: "eventos_organizador_id_fkey")
+  @@index([organizerId], map: "eventos_organizador_id_fkey")
   @@map("eventos")
 }
 
-model Inscricao {
+model Subscription {
   id           Int             @id @default(autoincrement())
-  usuario_id   Int
-  evento_id    Int
-  status       StatusInscricao @default(PENDENTE)
-  inscrito_em  DateTime        @default(now())
-  cancelado_em DateTime?
-  evento       Evento          @relation(fields: [evento_id], references: [id])
-  usuario      Usuario         @relation(fields: [usuario_id], references: [id])
+  userId       Int             @map("usuario_id")
+  eventId      Int             @map("evento_id")
+  status       SubscriptionStatus @default(PENDING)
+  subscribedAt DateTime        @default(now()) @map("inscrito_em")
+  canceledAt   DateTime?       @map("cancelado_em")
+  event        Event           @relation(fields: [eventId], references: [id])
+  user         User            @relation(fields: [userId], references: [id])
 
-  @@index([evento_id], map: "inscricoes_evento_id_fkey")
-  @@index([usuario_id], map: "inscricoes_usuario_id_fkey")
+  @@index([eventId], map: "inscricoes_evento_id_fkey")
+  @@index([userId], map: "inscricoes_usuario_id_fkey")
   @@map("inscricoes")
 }
 
-model Notificacao {
+model Notification {
   id           Int      @id @default(autoincrement())
-  evento_id    Int?
-  usuario_id   Int
-  remetente_id Int?
-  titulo       String
-  mensagem     String   @db.Text
-  lida         Boolean  @default(false)
-  enviado_em   DateTime @default(now())
-  evento       Evento?  @relation(fields: [evento_id], references: [id])
-  remetente    Usuario? @relation("NotificacaoRemetente", fields: [remetente_id], references: [id])
-  destinatario Usuario  @relation("NotificacaoDestinatario", fields: [usuario_id], references: [id])
+  eventId      Int?     @map("evento_id")
+  userId       Int      @map("usuario_id")
+  senderId     Int?     @map("remetente_id")
+  title        String   @map("titulo")
+  message      String   @db.Text @map("mensagem")
+  read         Boolean  @default(false) @map("lida")
+  sentAt       DateTime @default(now()) @map("enviado_em")
+  event        Event?   @relation(fields: [eventId], references: [id])
+  sender       User?    @relation("NotificationSender", fields: [senderId], references: [id])
+  recipient    User     @relation("NotificationRecipient", fields: [userId], references: [id])
 
-  @@index([evento_id], map: "notificacoes_evento_id_fkey")
-  @@index([remetente_id], map: "notificacoes_remetente_id_fkey")
-  @@index([usuario_id], map: "notificacoes_usuario_id_fkey")
+  @@index([eventId], map: "notificacoes_evento_id_fkey")
+  @@index([senderId], map: "notificacoes_remetente_id_fkey")
+  @@index([userId], map: "notificacoes_usuario_id_fkey")
   @@map("notificacoes")
 }
 
-model Categoria {
+model Category {
   id        Int               @id @default(autoincrement())
-  nome      String
-  descricao String?           @db.Text
-  eventos   EventoCategoria[]
+  name      String            @map("nome")
+  description String?           @db.Text @map("descricao")
+  events    EventCategory[]
 
   @@map("categorias")
 }
 
-model EventoCategoria {
-  evento_id    Int
-  categoria_id Int
-  categoria    Categoria @relation(fields: [categoria_id], references: [id])
-  evento       Evento    @relation(fields: [evento_id], references: [id])
+model EventCategory {
+  eventId      Int @map("evento_id")
+  categoryId   Int @map("categoria_id")
+  category     Category @relation(fields: [categoryId], references: [id])
+  event        Event    @relation(fields: [eventId], references: [id])
 
-  @@id([evento_id, categoria_id])
-  @@index([categoria_id], map: "eventos_categorias_categoria_id_fkey")
+  @@id([eventId, categoryId])
+  @@index([categoryId], map: "eventos_categorias_categoria_id_fkey")
   @@map("eventos_categorias")
 }
 
-enum StatusInscricao {
-  PENDENTE
-  CONFIRMADA
-  CANCELADA
+enum SubscriptionStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
 }

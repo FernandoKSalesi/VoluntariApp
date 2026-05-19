@@ -11,7 +11,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   const { authorization } = req.headers;
 
   if (!authorization) {
-    return res.status(401).json({ message: 'Token não fornecido' });
+    return res.status(401).json({ message: 'Token not provided' });
   }
 
   const token = authorization.replace('Bearer', '').trim();
@@ -24,6 +24,6 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 
     return next();
   } catch {
-    return res.status(401).json({ message: 'Token inválido ou expirado' });
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }
