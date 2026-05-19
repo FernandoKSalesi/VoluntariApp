@@ -40,7 +40,7 @@ export default function Register() {
     setError("");
 
     try {
-      await api.post("/usuarios", form);
+      await api.post("/users", form);
       navigate("/login");
     } catch (err: any) {
       console.error(err);
