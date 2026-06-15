@@ -4,7 +4,7 @@ services:
   db:
     image: mysql:8.0
     container_name: voluntariapp-mysql
-    restart: always
+    restart: on-failure
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: voluntariapp
@@ -16,7 +16,7 @@ services:
   adminer:
     image: adminer
     container_name: voluntariapp-adminer
-    restart: always
+    restart: on-failure
     ports:
       - "8080:8080"
     depends_on:

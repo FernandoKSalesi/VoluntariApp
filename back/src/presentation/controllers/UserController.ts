@@ -63,4 +63,22 @@ export class UserController {
       return res.status(400).json({ message: error.message });
     }
   }
+
+  async getSubscriptions(req: Request, res: Response) {
+    try {
+      const id = req.userId;
+
+      if (!id) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { SubscriptionRepository } = await import('../../data/repositories/SubscriptionRepository');
+      const repo = new SubscriptionRepository();
+      const subs = await repo.findByUserId(id);
+
+      return res.status(200).json(subs);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
 }

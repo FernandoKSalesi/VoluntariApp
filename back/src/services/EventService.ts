@@ -10,7 +10,7 @@ export class EventService {
   }
 
   async create(organizerId: number, data: CreateEventDTO) {
-    const { name, description, startTime, endTime, location, imageUrl, totalSpots } = data;
+    const { name, description, startTime, endTime, location, imageUrl, totalSpots, categoryNames } = data;
 
     const start = new Date(startTime);
     const end = new Date(endTime);
@@ -19,11 +19,11 @@ export class EventService {
       throw new Error('Invalid dates');
     }
 
-    if (start >= end) {
+    if (start > end) {
       throw new Error('Start time must be before end time');
     }
 
-    const event = new Event({
+    const eventData = {
       organizerId,
       name,
       description,
@@ -32,9 +32,13 @@ export class EventService {
       location,
       imageUrl,
       totalSpots,
-    });
+    };
 
-    return await this.eventRepository.save(event);
+    return await this.eventRepository.save(new Event(eventData), categoryNames);
+  }
+
+  async getOrganizedEvents(organizerId: number) {
+    return await this.eventRepository.findByOrganizer(organizerId);
   }
 
   async delete(id: number, userId: number) {

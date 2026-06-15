@@ -10,7 +10,7 @@ export class EventController {
 
   async create(req: Request, res: Response) {
     try {
-      const { name, description, startTime, endTime, location, imageUrl, totalSpots } = req.body;
+      const { name, description, startTime, endTime, location, imageUrl, totalSpots, categoryNames } = req.body;
       const organizerId = req.userId;
 
       if (!organizerId) {
@@ -25,9 +25,25 @@ export class EventController {
         location,
         imageUrl,
         totalSpots: Number(totalSpots),
+        categoryNames,
       });
 
       return res.status(201).json(event);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
+
+  async getOrganized(req: Request, res: Response) {
+    try {
+      const organizerId = req.userId;
+
+      if (!organizerId) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const events = await this.eventService.getOrganizedEvents(organizerId);
+      return res.json(events);
     } catch (error: any) {
       return res.status(400).json({ message: error.message });
     }

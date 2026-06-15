@@ -6,4 +6,5 @@ export interface CreateEventDTO {
   location?: string;
   imageUrl?: string;
   totalSpots: number;
+  categoryNames?: string[];
 }

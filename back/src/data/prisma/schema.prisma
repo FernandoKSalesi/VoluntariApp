@@ -18,6 +18,7 @@ model User {
   subscriptions        Subscription[]
   notificationsSent    Notification[] @relation("NotificationSender")
   notifications        Notification[] @relation("NotificationRecipient")
+  ratings              EventRating[]
 
   @@map("usuarios")
 }
@@ -37,9 +38,27 @@ model Event {
   categories     EventCategory[]
   subscriptions  Subscription[]
   notifications  Notification[]
+  ratings        EventRating[]
 
   @@index([organizerId], map: "eventos_organizador_id_fkey")
   @@map("eventos")
+}
+
+model EventRating {
+  id        Int      @id @default(autoincrement())
+  eventId   Int      @map("evento_id")
+  userId    Int      @map("usuario_id")
+  rating    Int      @map("nota")
+  comment   String?  @db.Text @map("comentario")
+  createdAt DateTime @default(now()) @map("criado_em")
+
+  event     Event    @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@index([eventId], map: "avaliacoes_evento_id_fkey")
+  @@index([userId], map: "avaliacoes_usuario_id_fkey")
+  @@map("avaliacoes_eventos")
 }
 
 model Subscription {
@@ -78,7 +97,7 @@ model Notification {
 
 model Category {
   id        Int               @id @default(autoincrement())
-  name      String            @map("nome")
+  name      String            @unique @map("nome")
   description String?           @db.Text @map("descricao")
   events    EventCategory[]
 

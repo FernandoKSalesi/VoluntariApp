@@ -1,11 +1,55 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
 import { EventController } from '../controllers/EventController';
+import { SubscriptionController } from '../controllers/SubscriptionController';
+import { NotificationController } from '../controllers/NotificationController';
+import { EventRatingController } from '../controllers/EventRatingController';
+import { CategoryController } from '../controllers/CategoryController';
 import { authMiddleware } from '../middlewares/authMiddleware';
+import { upload } from '../middlewares/uploadMiddleware';
 
 const routes = Router();
 const userController = new UserController();
 const eventController = new EventController();
+const subscriptionController = new SubscriptionController();
+const notificationController = new NotificationController();
+const eventRatingController = new EventRatingController();
+const categoryController = new CategoryController();
+
+/**
+ * @swagger
+ * /upload:
+ *   post:
+ *     summary: Upload an image
+ *     tags: [Upload]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 imageUrl: { type: string }
+ */
+routes.post('/upload', authMiddleware, upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded' });
+  }
+  const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+  res.json({ imageUrl });
+});
 
 /**
  * @swagger
@@ -63,6 +107,24 @@ routes.post('/users', (req, res) => userController.create(req, res));
  *         description: Unauthorized
  */
 routes.post('/auth/login', (req, res) => userController.login(req, res));
+
+/**
+ * @swagger
+ * /categories:
+ *   get:
+ *     summary: List all available categories
+ *     tags: [Categories]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: List of categories
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Category' }
+ */
+routes.get('/categories', (req, res) => categoryController.list(req, res));
 
 /**
  * @swagger
@@ -163,6 +225,37 @@ routes.put('/users', authMiddleware, (req, res) => userController.update(req, re
  *         description: Unauthorized
  */
 routes.get('/users/me', authMiddleware, (req, res) => userController.getMe(req, res));
+/**
+ * @swagger
+ * /users/me/subscriptions:
+ *   get:
+ *     summary: Get current user subscriptions
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user subscriptions
+ *       401:
+ *         description: Unauthorized
+ */
+routes.get('/users/me/subscriptions', authMiddleware, (req, res) => userController.getSubscriptions(req, res));
+
+/**
+ * @swagger
+ * /users/me/organized-events:
+ *   get:
+ *     summary: Get current user organized events
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of organized events
+ *       401:
+ *         description: Unauthorized
+ */
+routes.get('/users/me/organized-events', authMiddleware, (req, res) => eventController.getOrganized(req, res));
 
 /**
  * @swagger
@@ -206,5 +299,207 @@ routes.post('/events', authMiddleware, (req, res) => eventController.create(req,
  *         description: Unauthorized
  */
 routes.delete('/events/:id', authMiddleware, (req, res) => eventController.delete(req, res));
+
+// Subscription routes
+
+/**
+ * @swagger
+ * /events/{eventId}/subscribe:
+ *   post:
+ *     summary: Subscribe to an event
+ *     tags: [Subscriptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       201:
+ *         description: Subscribed successfully
+ *       400:
+ *         description: Bad request (e.g. event full, already subscribed)
+ *       401:
+ *         description: Unauthorized
+ */
+routes.post('/events/:eventId/subscribe', authMiddleware, (req, res) => subscriptionController.subscribe(req, res));
+
+/**
+ * @swagger
+ * /events/{eventId}/subscription:
+ *   delete:
+ *     summary: Unsubscribe from an event
+ *     tags: [Subscriptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204:
+ *         description: Unsubscribed successfully
+ *       401:
+ *         description: Unauthorized
+ */
+routes.delete('/events/:eventId/subscription', authMiddleware, (req, res) => subscriptionController.unsubscribe(req, res));
+
+/**
+ * @swagger
+ * /events/{eventId}/check-subscription:
+ *   get:
+ *     summary: Check if current user is subscribed to an event
+ *     tags: [Subscriptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Subscription status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSubscribed: { type: boolean }
+ *       401:
+ *         description: Unauthorized
+ */
+routes.get('/events/:eventId/check-subscription', authMiddleware, (req, res) => subscriptionController.check(req, res));
+
+// Notification routes
+
+/**
+ * @swagger
+ * /notifications:
+ *   get:
+ *     summary: Get current user notifications
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of notifications
+ *       401:
+ *         description: Unauthorized
+ */
+routes.get('/notifications', authMiddleware, (req, res) => notificationController.getUserNotifications(req, res));
+
+/**
+ * @swagger
+ * /notifications/{id}/read:
+ *   put:
+ *     summary: Mark a notification as read
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204:
+ *         description: Notification marked as read
+ *       401:
+ *         description: Unauthorized
+ */
+routes.put('/notifications/:id/read', authMiddleware, (req, res) => notificationController.markAsRead(req, res));
+
+/**
+ * @swagger
+ * /events/{eventId}/messages:
+ *   post:
+ *     summary: Send a message to all event subscribers (Organizer only)
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [message]
+ *             properties:
+ *               message: { type: string }
+ *     responses:
+ *       200:
+ *         description: Messages sent successfully
+ *       401:
+ *         description: Unauthorized
+ *       400:
+ *         description: Bad request or user is not the organizer
+ */
+routes.post('/events/:eventId/messages', authMiddleware, (req, res) => notificationController.sendEventMessage(req, res));
+
+// Event Rating routes
+
+/**
+ * @swagger
+ * /events/{id}/ratings:
+ *   post:
+ *     summary: Rate an event
+ *     tags: [Event Ratings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [rating]
+ *             properties:
+ *               rating: { type: integer, minimum: 1, maximum: 5 }
+ *               comment: { type: string }
+ *     responses:
+ *       201:
+ *         description: Event rated successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ */
+routes.post('/events/:id/ratings', authMiddleware, (req, res) => eventRatingController.rateEvent(req, res));
+
+/**
+ * @swagger
+ * /events/{id}/ratings:
+ *   get:
+ *     summary: Get event ratings (Organizer only)
+ *     tags: [Event Ratings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Event ratings statistics and comments
+ *       400:
+ *         description: Bad request or user is not the organizer
+ *       401:
+ *         description: Unauthorized
+ */
+routes.get('/events/:id/ratings', authMiddleware, (req, res) => eventRatingController.getEventRatings(req, res));
 
 export default routes;

@@ -18,6 +18,14 @@ const options: swaggerJsdoc.Options = {
         },
       },
       schemas: {
+        Category: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' },
+            description: { type: 'string' },
+          },
+        },
         User: {
           type: 'object',
           properties: {
@@ -41,6 +49,22 @@ const options: swaggerJsdoc.Options = {
             imageUrl: { type: 'string' },
             totalSpots: { type: 'integer' },
             organizerId: { type: 'integer' },
+            categories: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  categoryId: { type: 'integer' },
+                  category: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      name: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
         CreateUserDTO: {
@@ -66,6 +90,10 @@ const options: swaggerJsdoc.Options = {
             location: { type: 'string' },
             imageUrl: { type: 'string' },
             totalSpots: { type: 'integer' },
+            categoryNames: {
+              type: 'array',
+              items: { type: 'string' },
+            },
           },
         },
       },
