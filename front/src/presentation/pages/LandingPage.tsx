@@ -6,8 +6,6 @@ import { useLandingPageController } from "../controllers/useLandingPageControlle
 export function LandingPage() {
   const { featuredEvents, loading } = useLandingPageController();
 
-  if (loading) return <div>Carregando...</div>;
-
   return (
     <div>
       <section className="relative h-[calc(100vh-73px)] flex items-center overflow-hidden">
@@ -76,41 +74,51 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredEvents.map((event, index) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <Link to={`/eventos/${event.id}`} className="group block">
-                  <div className="relative overflow-hidden rounded-xl mb-4 aspect-[4/3]">
-                    <img
-                      src={event.image}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-4 right-4 px-3 py-1 bg-accent text-accent-foreground rounded-full" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-                      {event.vagas} vagas
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 min-h-[200px]">
+            {loading ? (
+              <div className="col-span-1 md:col-span-3 flex items-center justify-center text-muted-foreground">
+                Carregando eventos em destaque...
+              </div>
+            ) : featuredEvents.length === 0 ? (
+              <div className="col-span-1 md:col-span-3 flex items-center justify-center text-muted-foreground">
+                Nenhum evento encontrado no momento.
+              </div>
+            ) : (
+              featuredEvents.map((event, index) => (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Link to={`/eventos/${event.id}`} className="group block">
+                    <div className="relative overflow-hidden rounded-xl mb-4 aspect-[4/3]">
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-4 right-4 px-3 py-1 bg-accent text-accent-foreground rounded-full" style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                        {event.vagas} vagas
+                      </div>
                     </div>
-                  </div>
-                  <h3 className="mb-2 group-hover:text-accent transition-colors" style={{ fontSize: '1.5rem', fontWeight: 600 }}>
-                    {event.title}
-                  </h3>
-                  <div className="flex items-center gap-4 text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {event.location}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-foreground" style={{ fontWeight: 500 }}>
-                    {event.date}
-                  </p>
-                </Link>
-              </motion.div>
-            ))}
+                    <h3 className="mb-2 group-hover:text-accent transition-colors" style={{ fontSize: '1.5rem', fontWeight: 600 }}>
+                      {event.title}
+                    </h3>
+                    <div className="flex items-center gap-4 text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {event.location}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-foreground" style={{ fontWeight: 500 }}>
+                      {event.date}
+                    </p>
+                  </Link>
+                </motion.div>
+              ))
+            )}
           </div>
 
           <div className="text-center mt-12">

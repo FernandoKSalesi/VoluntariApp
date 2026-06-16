@@ -91,6 +91,36 @@ export class EventController {
       const event = await this.eventService.getEvent(Number(id));
       return res.json(event);
     } catch (error: any) {
+      if (error.message === 'Event not found') {
+        return res.status(404).json({ message: error.message });
+      }
+      return res.status(400).json({ message: error.message });
+    }
+  }
+
+  async update(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { name, description, startTime, endTime, location, imageUrl, totalSpots, categoryNames } = req.body;
+      const organizerId = req.userId;
+
+      if (!organizerId) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const event = await this.eventService.update(Number(id), organizerId, {
+        name,
+        description,
+        startTime,
+        endTime,
+        location,
+        imageUrl,
+        totalSpots: totalSpots ? Number(totalSpots) : undefined,
+        categoryNames,
+      });
+
+      return res.json(event);
+    } catch (error: any) {
       return res.status(400).json({ message: error.message });
     }
   }

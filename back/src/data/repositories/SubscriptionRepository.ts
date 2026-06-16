@@ -40,4 +40,20 @@ export class SubscriptionRepository {
       },
     });
   }
+
+  async findByEventId(eventId: number) {
+    return await prisma.subscription.findMany({
+      where: { eventId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
+      }
+    });
+  }
 }

@@ -1,21 +1,22 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router";
 import { motion } from "motion/react";
-import { Calendar, MapPin, Users, Clock, ArrowLeft, CheckCircle } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, ArrowLeft, CheckCircle, Info } from "lucide-react";
 import { useEventoDetalheController } from "../controllers/useEventoDetalheController";
+import { AvaliacaoEvento } from "../components/AvaliacaoEvento";
 
 export function EventoDetalhePage() {
   const { id } = useParams();
-  const { event: evento, loading, isInscrito, toggleInscricao } = useEventoDetalheController(Number(id));
+  const { event: evento, loading, error, isSubscribed, subscribing, handleSubscribe } = useEventoDetalheController(Number(id));
   const [showConfirmacao, setShowConfirmacao] = useState(false);
 
   const handleInscrever = () => {
-    if (!isInscrito) {
-      toggleInscricao();
+    if (!isSubscribed) {
+      handleSubscribe();
       setShowConfirmacao(true);
       setTimeout(() => setShowConfirmacao(false), 3000);
     } else {
-      toggleInscricao();
+      handleSubscribe();
     }
   };
 
@@ -56,7 +57,7 @@ export function EventoDetalhePage() {
                 Sobre o Evento
               </h2>
               <p className="text-foreground/80 leading-relaxed" style={{ fontSize: '1.125rem' }}>
-                {evento.descricao}
+                {evento.description}
               </p>
             </section>
 
@@ -116,44 +117,64 @@ export function EventoDetalhePage() {
                       <div style={{ fontWeight: 600 }}>{evento.location}</div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
-                    <div>
-                      <div className="text-muted-foreground" style={{ fontSize: '0.875rem' }}>Vagas</div>
-                      <div style={{ fontWeight: 600 }}>
-                        {evento.inscritos}/{evento.vagas} inscritos
-                      </div>
+                <div className="bg-secondary rounded-xl p-6 border border-border">
+                  <h3 className="mb-4" style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                    Vagas Disponíveis
+                  </h3>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-end gap-2 mb-2">
+                      <span style={{ fontSize: '2.5rem', fontWeight: 700, lineHeight: 1 }}>
+                        {evento.vagas - (evento.inscritos || 0)}
+                      </span>
+                      <span className="text-muted-foreground pb-1">de {evento.vagas}</span>
+                    </div>
+                    <div className="w-full bg-white h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-accent h-full transition-all duration-500"
+                        style={{ width: `${((evento.inscritos || 0) / evento.vagas) * 100}%` }}
+                      />
                     </div>
                   </div>
-                </div>
 
-                <div className="mb-4">
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-accent h-2 rounded-full transition-all"
-                      style={{ width: `${((evento.inscritos || 0) / evento.vagas) * 100}%` }}
-                    />
-                  </div>
-                  <p className="text-muted-foreground mt-2" style={{ fontSize: '0.875rem' }}>
-                    {evento.vagas - (evento.inscritos || 0)} vagas disponíveis
-                  </p>
-                </div>
+                  {error && (
+                    <div className="mb-4 text-red-600 text-sm bg-red-50 p-2 rounded">
+                      {error}
+                    </div>
+                  )}
 
-                {!isInscrito ? (
-                  <button
-                    onClick={handleInscrever}
-                    className="w-full px-6 py-4 bg-accent text-accent-foreground rounded-lg hover:opacity-90 transition-opacity"
-                    style={{ fontWeight: 600, fontSize: '1.125rem' }}
-                  >
-                    Inscrever-se
-                  </button>
-                ) : (
-                  <div className="w-full px-6 py-4 bg-green-500 text-white rounded-lg flex items-center justify-center gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    Inscrito com sucesso!
-                  </div>
-                )}
+                  {new Date(evento.rawStartTime || evento.date) < new Date() ? (
+                    <p className="text-center text-red-600 font-semibold mt-4 bg-red-50 py-3 border border-red-200 rounded-lg">
+                      Este evento já foi realizado.
+                    </p>
+                  ) : !!localStorage.getItem("token") ? (
+                    <>
+                      <button
+                        onClick={handleInscrever}
+                        disabled={subscribing || (!isSubscribed && (evento.inscritos || 0) >= evento.vagas)}
+                        className={`w-full py-4 rounded-lg transition-all mb-4 disabled:opacity-50 flex items-center justify-center gap-2 ${
+                          isSubscribed
+                            ? "bg-white text-accent border-2 border-accent hover:bg-red-50 hover:text-red-500 hover:border-red-500"
+                            : "bg-accent text-accent-foreground hover:opacity-90"
+                        }`}
+                        style={{ fontWeight: 600 }}
+                      >
+                        {subscribing ? "Processando..." : (isSubscribed ? "Cancelar Inscrição" : "Quero Participar")}
+                      </button>
+
+                      <p className="text-center text-muted-foreground text-sm flex items-center justify-center gap-2">
+                        <Info className="w-4 h-4" />
+                        {isSubscribed ? "Você está inscrito neste evento" : "Inscrições encerram 1h antes do evento"}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-center text-muted-foreground text-sm mt-4 bg-white py-3 border border-border rounded-lg">
+                      <a href="/login" className="text-accent hover:underline font-semibold">Faça login</a> para participar deste evento.
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="bg-secondary rounded-xl p-6">
@@ -178,6 +199,12 @@ export function EventoDetalhePage() {
             <div style={{ fontSize: '0.875rem' }}>Você receberá mais informações por email</div>
           </div>
         </motion.div>
+      )}
+
+      {isSubscribed && (
+        <div className="mx-auto max-w-5xl px-6 pb-12">
+          <AvaliacaoEvento eventId={evento.id} />
+        </div>
       )}
     </div>
   );

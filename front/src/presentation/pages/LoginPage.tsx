@@ -1,15 +1,35 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { Heart, Mail, Lock } from "lucide-react";
+import { ApiClient } from "../../data/services/ApiClient";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login:", { email, senha });
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await ApiClient.post("/auth/login", { email, password: senha });
+      if (response.token && response.user) {
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        // Force refresh or just navigate. Better to navigate to home.
+        navigate("/");
+        window.location.reload(); // Reload to refresh any global state easily
+      }
+    } catch (err: any) {
+      setError(err.message || "Erro ao realizar login");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,6 +52,12 @@ export function LoginPage() {
             Entre para continuar fazendo a diferença
           </p>
 
+          {error && (
+            <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-200">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block mb-2">Email</label>
@@ -42,8 +68,9 @@ export function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="w-full pl-12 pr-4 py-3 bg-secondary rounded-lg outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full pl-12 pr-4 py-3 bg-secondary rounded-lg outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -57,8 +84,9 @@ export function LoginPage() {
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-4 py-3 bg-secondary rounded-lg outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full pl-12 pr-4 py-3 bg-secondary rounded-lg outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -75,10 +103,11 @@ export function LoginPage() {
 
             <button
               type="submit"
-              className="w-full px-6 py-4 bg-accent text-accent-foreground rounded-lg hover:opacity-90 transition-opacity"
+              disabled={loading}
+              className="w-full px-6 py-4 bg-accent text-accent-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
               style={{ fontWeight: 600, fontSize: '1.125rem' }}
             >
-              Entrar
+              {loading ? "Entrando..." : "Entrar"}
             </button>
           </form>
 

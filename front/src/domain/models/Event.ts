@@ -1,5 +1,6 @@
 export interface Event {
   id: number;
+  rawStartTime?: string;
   title: string;
   image: string;
   date: string;

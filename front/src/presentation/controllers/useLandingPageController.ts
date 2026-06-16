@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import type { Event } from "@/domain/models/Event";
-import { EventRepositoryMock } from "@/data/repositories/EventRepositoryMock";
+import { EventRepository } from "@/data/repositories/EventRepository";
 
-const eventRepository = new EventRepositoryMock();
+const eventRepository = new EventRepository();
 
 export function useLandingPageController() {
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);

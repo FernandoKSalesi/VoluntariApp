@@ -1,36 +1,72 @@
 import { useState, useEffect } from "react";
 import type { Event } from "@/domain/models/Event";
-import { EventRepositoryMock } from "@/data/repositories/EventRepositoryMock";
+import { EventRepository } from "@/data/repositories/EventRepository";
+import { ApiClient } from "@/data/services/ApiClient";
 
-const eventRepository = new EventRepositoryMock();
+const eventRepository = new EventRepository();
 
 export function useEventoDetalheController(id: number) {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isInscrito, setIsInscrito] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchEvent() {
+    async function loadData() {
+      if (!id) return;
       try {
+        setLoading(true);
         const data = await eventRepository.getEventById(id);
         setEvent(data);
-      } catch (error) {
-        console.error(error);
+        
+        // Check subscription if logged in
+        if (localStorage.getItem("token")) {
+          const subRes = await ApiClient.get(`/events/${id}/check-subscription`);
+          setIsSubscribed(subRes.isSubscribed);
+        }
+      } catch (err) {
+        setError("Erro ao carregar evento");
       } finally {
         setLoading(false);
       }
     }
-    fetchEvent();
+    loadData();
   }, [id]);
 
-  const toggleInscricao = () => {
-    setIsInscrito(prev => !prev);
+  const handleSubscribe = async () => {
+    if (!localStorage.getItem("token")) {
+      setError("Você precisa estar logado para se inscrever.");
+      return;
+    }
+    try {
+      setSubscribing(true);
+      if (isSubscribed) {
+        await ApiClient.delete(`/events/${id}/subscription`);
+        setIsSubscribed(false);
+        if (event) {
+          setEvent({...event, inscritos: (event.inscritos || 1) - 1});
+        }
+      } else {
+        await ApiClient.post(`/events/${id}/subscribe`, {});
+        setIsSubscribed(true);
+        if (event) {
+          setEvent({...event, inscritos: (event.inscritos || 0) + 1});
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || "Erro ao processar inscrição.");
+    } finally {
+      setSubscribing(false);
+    }
   };
 
   return {
     event,
     loading,
-    isInscrito,
-    toggleInscricao
+    error,
+    isSubscribed,
+    subscribing,
+    handleSubscribe
   };
 }

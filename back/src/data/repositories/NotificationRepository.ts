@@ -55,4 +55,11 @@ export class NotificationRepository {
       data: { read: true }
     });
   }
+
+  async markAllAsRead(userId: number): Promise<void> {
+    await prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true },
+    });
+  }
 }

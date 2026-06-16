@@ -12,7 +12,7 @@ export class NotificationService {
     this.eventRepository = new EventRepository();
   }
 
-  async sendEventMessage(eventId: number, organizerId: number, message: string) {
+  async sendEventMessage(eventId: number, organizerId: number, message: string, subject?: string) {
     const event = await this.eventRepository.findById(eventId);
     if (!event) {
       throw new Error('Event not found');
@@ -35,7 +35,7 @@ export class NotificationService {
       eventId,
       userId: sub.userId,
       senderId: organizerId,
-      title: `Nova mensagem de ${event.name}`,
+      title: subject || `Nova mensagem de ${event.name}`,
       message,
       read: false
     }));
@@ -50,5 +50,9 @@ export class NotificationService {
 
   async markAsRead(notificationId: number) {
     await this.notificationRepository.markAsRead(notificationId);
+  }
+
+  async markAllAsRead(userId: number) {
+    await this.notificationRepository.markAllAsRead(userId);
   }
 }

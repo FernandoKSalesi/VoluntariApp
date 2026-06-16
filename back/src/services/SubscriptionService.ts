@@ -20,6 +20,10 @@ export class SubscriptionService {
       throw new Error('Event not found');
     }
 
+    if (new Date(event.startTime) < new Date()) {
+      throw new Error('Não é possível se inscrever em um evento que já passou.');
+    }
+
     const existingSubscription = await this.subscriptionRepository.findByUserAndEvent(userId, eventId);
     if (existingSubscription) {
       throw new Error('Already subscribed to this event');
@@ -52,5 +56,18 @@ export class SubscriptionService {
   async isSubscribed(userId: number, eventId: number) {
     const subscription = await this.subscriptionRepository.findByUserAndEvent(userId, eventId);
     return !!subscription;
+  }
+
+  async getEventParticipants(eventId: number, organizerId: number) {
+    const event = await this.eventRepository.findById(eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
+    if (event.organizerId !== organizerId) {
+      throw new Error('You do not have permission to view participants for this event');
+    }
+
+    return await this.subscriptionRepository.findByEventId(eventId);
   }
 }

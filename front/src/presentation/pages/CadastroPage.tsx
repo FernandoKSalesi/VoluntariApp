@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
 import { Heart, User, Mail, Phone, CreditCard, Lock } from "lucide-react";
+import { ApiClient } from "../../data/services/ApiClient";
 
 export function CadastroPage() {
   const [formData, setFormData] = useState({
@@ -14,13 +15,66 @@ export function CadastroPage() {
     confirmarSenha: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const maskCPF = (value: string) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+      .replace(/(-\d{2})\d+?$/, "$1");
+  };
+
+  const maskPhone = (value: string) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .replace(/(-\d{4})\d+?$/, "$1");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Cadastro:", formData);
+    if (formData.senha !== formData.confirmarSenha) {
+      setError("As senhas não coincidem");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    // O backend não exige máscara nem remove a máscara, 
+    // mas é recomendável mandar apenas os números para consistência no banco.
+    const payload = {
+      name: formData.nome,
+      email: formData.email,
+      phone: formData.telefone.replace(/\D/g, ""),
+      cpf: formData.cpf.replace(/\D/g, ""),
+      username: formData.usuario,
+      password: formData.senha
+    };
+
+    try {
+      await ApiClient.post("/users", payload);
+      setSuccess(true);
+    } catch (err: any) {
+      setError(err.message || "Erro ao cadastrar");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    let maskedValue = value;
+    if (field === "cpf") {
+      maskedValue = maskCPF(value);
+    } else if (field === "telefone") {
+      maskedValue = maskPhone(value);
+    }
+    setFormData(prev => ({ ...prev, [field]: maskedValue }));
   };
 
   return (
@@ -43,9 +97,27 @@ export function CadastroPage() {
             Comece sua jornada como voluntário
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block mb-2">Nome Completo</label>
+          {error && (
+            <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-200">
+              {error}
+            </div>
+          )}
+
+          {success ? (
+            <div className="bg-green-50 text-green-800 p-6 rounded-lg text-center border border-green-200">
+              <h3 className="text-xl font-bold mb-2">Cadastro Realizado!</h3>
+              <p className="mb-4">Sua conta foi criada com sucesso.</p>
+              <Link 
+                to="/login" 
+                className="inline-block px-6 py-3 bg-accent text-accent-foreground rounded-lg hover:opacity-90 transition-opacity font-bold"
+              >
+                Ir para o Login
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block mb-2">Nome Completo</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
@@ -153,12 +225,14 @@ export function CadastroPage() {
 
             <button
               type="submit"
-              className="w-full px-6 py-4 bg-accent text-accent-foreground rounded-lg hover:opacity-90 transition-opacity"
+              disabled={loading}
+              className="w-full px-6 py-4 bg-accent text-accent-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
               style={{ fontWeight: 600, fontSize: '1.125rem' }}
             >
-              Cadastrar
+              {loading ? "Cadastrando..." : "Cadastrar"}
             </button>
           </form>
+          )}
 
           <p className="mt-8 text-center text-muted-foreground">
             Já tem uma conta?{' '}

@@ -55,4 +55,20 @@ export class SubscriptionController {
       return res.status(400).json({ message: error.message });
     }
   }
+
+  async getEventParticipants(req: Request, res: Response) {
+    try {
+      const { eventId } = req.params;
+      const organizerId = req.userId;
+
+      if (!organizerId) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const participants = await this.subscriptionService.getEventParticipants(Number(eventId), organizerId);
+      return res.json(participants);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
 }

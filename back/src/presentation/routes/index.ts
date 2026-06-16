@@ -300,6 +300,32 @@ routes.post('/events', authMiddleware, (req, res) => eventController.create(req,
  */
 routes.delete('/events/:id', authMiddleware, (req, res) => eventController.delete(req, res));
 
+/**
+ * @swagger
+ * /events/{id}:
+ *   put:
+ *     summary: Update an event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateEventDTO'
+ *     responses:
+ *       200:
+ *         description: Event updated successfully
+ *       401:
+ *         description: Unauthorized
+ */
+routes.put('/events/:id', authMiddleware, (req, res) => eventController.update(req, res));
+
 // Subscription routes
 
 /**
@@ -373,6 +399,27 @@ routes.delete('/events/:eventId/subscription', authMiddleware, (req, res) => sub
  */
 routes.get('/events/:eventId/check-subscription', authMiddleware, (req, res) => subscriptionController.check(req, res));
 
+/**
+ * @swagger
+ * /events/{eventId}/subscriptions:
+ *   get:
+ *     summary: Get participants of an event
+ *     tags: [Subscriptions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: List of participants
+ *       401:
+ *         description: Unauthorized
+ */
+routes.get('/events/:eventId/subscriptions', authMiddleware, (req, res) => subscriptionController.getEventParticipants(req, res));
+
 // Notification routes
 
 /**
@@ -411,6 +458,22 @@ routes.get('/notifications', authMiddleware, (req, res) => notificationControlle
  *         description: Unauthorized
  */
 routes.put('/notifications/:id/read', authMiddleware, (req, res) => notificationController.markAsRead(req, res));
+
+/**
+ * @swagger
+ * /notifications/read-all:
+ *   put:
+ *     summary: Mark all user notifications as read
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204:
+ *         description: All notifications marked as read
+ *       401:
+ *         description: Unauthorized
+ */
+routes.put('/notifications/read-all', authMiddleware, (req, res) => notificationController.markAllAsRead(req, res));
 
 /**
  * @swagger

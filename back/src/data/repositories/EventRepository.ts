@@ -82,6 +82,9 @@ export class EventRepository {
 
   async findAll(): Promise<any[]> {
     const events = await prisma.event.findMany({
+      where: {
+        startTime: { gte: new Date() }
+      },
       include: {
         organizer: {
           select: { name: true }
@@ -141,9 +144,11 @@ export class EventRepository {
       where.location = { contains: location };
     }
 
+    const now = new Date();
+    where.startTime = { gte: now };
+
     if (startDate || endDate) {
-      where.startTime = {};
-      if (startDate) {
+      if (startDate && startDate > now) {
         where.startTime.gte = startDate;
       }
       if (endDate) {

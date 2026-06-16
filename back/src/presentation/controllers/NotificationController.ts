@@ -11,10 +11,10 @@ export class NotificationController {
   async sendEventMessage(req: Request, res: Response) {
     try {
       const { eventId } = req.params;
-      const { message } = req.body;
+      const { message, subject } = req.body;
       const userId = req.userId;
 
-      const sentCount = await this.notificationService.sendEventMessage(Number(eventId), userId, message);
+      const sentCount = await this.notificationService.sendEventMessage(Number(eventId), userId, message, subject);
       res.status(200).json({ message: 'Mensagens enviadas com sucesso', sentCount });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -35,6 +35,16 @@ export class NotificationController {
     try {
       const { id } = req.params;
       await this.notificationService.markAsRead(Number(id));
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  async markAllAsRead(req: Request, res: Response) {
+    try {
+      const userId = req.userId;
+      await this.notificationService.markAllAsRead(userId);
       res.status(204).send();
     } catch (error: any) {
       res.status(400).json({ error: error.message });

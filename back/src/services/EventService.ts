@@ -41,6 +41,45 @@ export class EventService {
     return await this.eventRepository.findByOrganizer(organizerId);
   }
 
+  async update(id: number, organizerId: number, data: Partial<CreateEventDTO>) {
+    const event = await this.eventRepository.findById(id);
+
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
+    if (event.organizerId !== organizerId) {
+      throw new Error('You do not have permission to edit this event');
+    }
+
+    const { name, description, startTime, endTime, location, imageUrl, totalSpots, categoryNames } = data;
+
+    let start, end;
+    if (startTime) start = new Date(startTime);
+    if (endTime) end = new Date(endTime);
+
+    if ((start && isNaN(start.getTime())) || (end && isNaN(end.getTime()))) {
+      throw new Error('Invalid dates');
+    }
+
+    if (start && end && start > end) {
+      throw new Error('Start time must be before end time');
+    }
+
+    const updatedEvent = new Event({
+      organizerId,
+      name: name ?? event.name,
+      description: description !== undefined ? description : event.description,
+      startTime: start ?? event.startTime,
+      endTime: end ?? event.endTime,
+      location: location !== undefined ? location : event.location,
+      imageUrl: imageUrl !== undefined ? imageUrl : event.imageUrl,
+      totalSpots: totalSpots ?? event.totalSpots,
+    }, event.id);
+
+    return await this.eventRepository.save(updatedEvent, categoryNames);
+  }
+
   async delete(id: number, userId: number) {
     const event = await this.eventRepository.findById(id);
 

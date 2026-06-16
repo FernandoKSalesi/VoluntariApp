@@ -1,40 +1,80 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { User, Mail, Phone, CreditCard, Edit2, Heart, Calendar, MapPin } from "lucide-react";
+import { ApiClient } from "../../data/services/ApiClient";
+import { getImageUrl } from "../../utils/imageUtils";
 
 export function PerfilPage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
   const [userData, setUserData] = useState({
-    nome: "João Silva",
-    email: "joao.silva@email.com",
-    telefone: "(11) 99999-9999",
-    cpf: "000.000.000-00",
-    usuario: "joaosilva"
+    nome: "",
+    email: "",
+    telefone: "",
+    cpf: "",
+    usuario: ""
   });
 
-  const meusEventos = [
-    {
-      id: 1,
-      title: "Limpeza de Parque Comunitário",
-      image: "https://images.unsplash.com/photo-1758599668429-121d54188b9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400",
-      date: "20 Abr 2026",
-      location: "Parque Ibirapuera, SP",
-      status: "confirmado"
-    },
-    {
-      id: 2,
-      title: "Distribuição de Alimentos",
-      image: "https://images.unsplash.com/photo-1758599669406-d5179ccefcb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400",
-      date: "22 Abr 2026",
-      location: "Centro, São Paulo",
-      status: "confirmado"
-    }
-  ];
+  const [meusEventos, setMeusEventos] = useState<any[]>([]);
 
-  const handleSave = () => {
-    setIsEditing(false);
-    console.log("Dados salvos:", userData);
+  useEffect(() => {
+    const fetchDados = async () => {
+      try {
+        setLoading(true);
+        const [userRes, subsRes] = await Promise.all([
+          ApiClient.get("/users/me"),
+          ApiClient.get("/users/me/subscriptions")
+        ]);
+
+        setUserData({
+          nome: userRes.name || "",
+          email: userRes.email || "",
+          telefone: userRes.phone || "",
+          cpf: userRes.document || "",
+          usuario: userRes.email?.split('@')[0] || "" // Mock de username via email
+        });
+
+        const mappedSubs = subsRes.map((sub: any) => ({
+          id: sub.event.id,
+          title: sub.event.name || sub.event.title,
+          image: getImageUrl(sub.event.imageUrl),
+          date: new Date(sub.event.startTime).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' }),
+          location: sub.event.location || "",
+          status: "confirmado"
+        }));
+        setMeusEventos(mappedSubs);
+
+      } catch (e) {
+        console.error("Erro ao carregar perfil", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDados();
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await ApiClient.put("/users", {
+        name: userData.nome,
+        phone: userData.telefone,
+        document: userData.cpf
+      });
+      // Email generally is not updated here, or handled separately
+      setIsEditing(false);
+    } catch (e: any) {
+      alert("Erro ao salvar: " + (e.message || ""));
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-white py-12">
@@ -195,17 +235,17 @@ export function PerfilPage() {
                 <div className="space-y-4 pt-6 border-t border-border">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Eventos participados</span>
-                    <span style={{ fontWeight: 600 }}>12</span>
+                    <span style={{ fontWeight: 600 }}>{meusEventos.length}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Horas voluntariadas</span>
-                    <span style={{ fontWeight: 600 }}>48h</span>
+                    <span style={{ fontWeight: 600 }}>{meusEventos.length * 4}h</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Impacto gerado</span>
                     <div className="flex items-center gap-1">
                       <Heart className="w-4 h-4 text-accent fill-accent" />
-                      <span style={{ fontWeight: 600 }}>Alto</span>
+                      <span style={{ fontWeight: 600 }}>{meusEventos.length > 5 ? "Alto" : (meusEventos.length > 0 ? "Médio" : "Nenhum")}</span>
                     </div>
                   </div>
                 </div>

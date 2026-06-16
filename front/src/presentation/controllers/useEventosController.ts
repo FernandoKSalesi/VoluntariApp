@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import type { Event } from "@/domain/models/Event";
-import { EventRepositoryMock } from "@/data/repositories/EventRepositoryMock";
+import { EventRepository } from "@/data/repositories/EventRepository";
 
 // Injeção de dependência rudimentar, idealmente passaria via context
-const eventRepository = new EventRepositoryMock();
+const eventRepository = new EventRepository();
 
 export function useEventosController() {
   const [events, setEvents] = useState<Event[]>([]);
